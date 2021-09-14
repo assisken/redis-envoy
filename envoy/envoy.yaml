@@ -1,0 +1,45 @@
+static_resources:
+  listeners:
+  - name: redis_listener
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 1999
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.tcp_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+          stat_prefix: egress_redis
+          cluster: redis_cluster
+  clusters:
+  - name: redis_cluster
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    common_lb_config:
+      zone_aware_lb_config:
+        fail_traffic_on_panic: true
+    load_assignment:
+      cluster_name: redis_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            health_check_config:
+              port_value: 5000
+            address:
+              socket_address:
+                address: redis1
+                port_value: 6379
+    health_checks:
+    - timeout: 1s
+      interval: 1s
+      unhealthy_threshold: 1
+      healthy_threshold: 1
+      http_health_check:
+        path: /health
+
+admin:
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 8001

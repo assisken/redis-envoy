@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  redis1:
+    container_name: redis1
+    build:
+      context: .
+      dockerfile: redis.dockerfile
+
+  envoy:
+    container_name: envoy
+    build:
+      context: .
+      dockerfile: envoy.dockerfile
+    volumes:
+      - "./envoy:/envoy"
+    ports:
+      - "1999:1999"
+      - "8001:8001"
